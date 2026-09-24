@@ -1,6 +1,6 @@
 {
   "name": "cad-headless",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Read, edit and plot AutoCAD DWG files headlessly through accoreconsole.exe with AutoLISP — no AutoCAD window, no COM.",
   "author": { "name": "xy425yi", "url": "https://github.com/xy425yi" },
   "repository": "https://github.com/xy425yi/claude-cad-skill",

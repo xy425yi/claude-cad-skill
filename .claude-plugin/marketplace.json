@@ -9,7 +9,7 @@
       "name": "cad-headless",
       "source": "./plugins/cad-headless",
       "description": "Read, edit and plot DWG files headlessly through AutoCAD's accoreconsole — keynotes, schedules, tags, notes, revision clouds, PDF sets",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "category": "design",
       "keywords": ["autocad", "dwg", "architecture", "cad", "construction-documents"]
     }

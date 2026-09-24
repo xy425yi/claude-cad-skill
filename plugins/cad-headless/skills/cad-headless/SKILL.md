@@ -33,6 +33,7 @@ python $S/core.py run     "C:/path/A-101.dwg" --save --file edits.lsp.txt       
 python $S/core.py run     "C:/path/A-101.dwg" --save --dyn --file x.lsp.txt     # + dynblock.dll (full AutoCAD)
 python $S/core.py plot    "C:/path/A-101.dwg" --layout "A-101 FLOOR PLAN" --out C:/tmp/A-101.pdf [--pre '(lisp)']
 python $S/core.py dxf     "C:/path/A-101.dwg" --out C:/tmp/A-101.dxf             # DXFOUT for ezdxf / dxf_table.py
+python $S/core.py ctb     "C:/path/A-101.dwg"                                    # plot style per layout + what's installed
 python $S/core.py exe                                                            # which accoreconsole will be used
 ```
 
@@ -64,7 +65,7 @@ Add new helpers to lib.lsp using only entget / entmod / entmake / entdel / `(com
 | Item | Default | If different |
 |---|---|---|
 | accoreconsole.exe | `cadcore.json` in the skill folder (written by install.ps1) + `C:/Program Files/Autodesk/AutoCAD*`; full AutoCAD first, newest year first | re-run `install.ps1 -AutoCAD "<folder>"`, or `ACCORECONSOLE=<exe>`; `CADCORE_LT=1` / `--lt` to prefer LT |
-| Plot style (.ctb/.stb) | none forced — `plot` uses each layout's saved page setup | the CTB named in the DWG must be in your Plot Styles folder (`STYLESMANAGER` opens it) |
+| Plot style (.ctb/.stb) | each layout's saved page setup; ask the user before plotting (see Plotting) | `core.py ctb` shows what's used / installed; `plot --ctb <name>` overrides; missing files go in the Plot Styles folder (`STYLESMANAGER` opens it) |
 | PDF driver | `DWG To PDF.pc3` | `--device "Name.pc3"` |
 | dynblock.dll | built for AutoCAD 2027 | rebuild for your release, see `dotnet/dynblock/README.md` |
 
@@ -152,6 +153,14 @@ See **`reference/table-edit.md`**: dynblock.dll `tbl*` functions on full AutoCAD
 (`scripts/dxf_table.py`, `scripts/table_rowedit.py`) as the LT fallback.
 
 ## Plotting & sets
+
+- **Ask which plot style (CTB) to use before plotting** — the first time the user asks for a PDF in a project.
+  Run `core.py ctb <dwg>` first: it lists the CTB each layout has saved, whether that file exists on this machine, and
+  every CTB installed. Show the user the drawing's own CTB as the default plus the alternatives, and ask. Remember the
+  answer for the rest of the project; don't ask again for every sheet.
+  - Drawing's own CTB → plain `plot`. Another one → `plot --ctb <name>` (for that plot only; the DWG isn't changed).
+  - If the layout's CTB is missing, `plot` stops. Tell the user which file is missing — never plot with a substitute
+    silently; line weights and screening would be wrong. `--allow-missing-ctb` only if the user says so.
 
 - `--layout` must be the full layout name as `info` lists it (`A-120 FURNITURE PLAN`, not `A-120`), or -PLOT waits for input until timeout.
 - **Always put `(freeze-off-layers)` in `--pre`**: DWG To PDF writes OFF layers as hidden PDF layers; merging PDFs drops the hidden state and switched-off geometry reappears. Frozen layers aren't exported.

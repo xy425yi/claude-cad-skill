@@ -7,8 +7,9 @@ dynblock.dll for dynamic blocks and tables); AutoCAD LT 2024+ also ships accorec
     python core.py info      <dwg>                         # layouts, units, entity counts, xrefs
     python core.py survey    <dwg> [--type MULTILEADER|TEXT|MTEXT|INSERT|DIMENSION|ALL] [--layer L] [--out f.txt]
     python core.py run       <dwg> --cmd '(…lisp…)' [--cmd …] [--file cmds.txt] [--save] [--readonly]
-    python core.py plot      <dwg> --layout NAME [--out f.pdf] [--all]
+    python core.py plot      <dwg> --layout NAME [--out f.pdf] [--all] [--ctb monochrome.ctb]
     python core.py dxf       <dwg> [--out f.dxf]           # DXFOUT (so no one has to SAVEAS by hand)
+    python core.py ctb       <dwg>                         # plot style per layout, whether it's installed, what's available
     python core.py exe                                     # which accoreconsole will be used
 
 Every subcommand builds a .scr (CRLF), loads lisp/lib.lsp, runs accoreconsole from a SHORT temp dir,
@@ -188,11 +189,33 @@ def cmd_run(a):
     print(f"[{dt:.1f}s] script: {scr}" + ("  SAVED" if a.save and not bad else "  (not saved)" if not a.save else "  SAVE ATTEMPTED — check messages above"))
     sys.exit(1 if bad else 0)
 
+def ctb_info(dwg):
+    """{'dir': Plot Styles folder, 'layouts': {layout: style table}, 'available': [files in that folder]}"""
+    out, _, _ = run_core(dwg, build_scr(['(hl-ctb-report)']), readonly=True, tag="ctb")
+    m = re.search(r"^CTBDIR\|(.*?)\s*$", out, re.M)
+    d = m.group(1).strip() if m else ""
+    lays = {mm.group(1).strip(): mm.group(2).strip() for mm in re.finditer(r"^CTB\|(.+?)\|(.*?)\s*$", out, re.M)}   # strip(): stray CRs
+    avail = sorted(f for f in (os.listdir(d) if d and os.path.isdir(d) else []) if f.lower().endswith((".ctb", ".stb")))
+    return {"dir": d, "layouts": lays, "available": avail}
+
+def has_style(name, avail):
+    return (not name) or name.lower() == "none" or name.lower() in (x.lower() for x in avail)
+
+def cmd_ctb(a):
+    info = ctb_info(a.dwg)
+    print("Plot Styles folder:", info["dir"] or "(unknown)")
+    missing = False
+    for lay, st in info["layouts"].items():
+        ok = has_style(st, info["available"])
+        missing = missing or not ok
+        print(f"  {lay}  ->  {st or '(none)'}" + ("" if ok else "   MISSING on this machine"))
+    print("available:", ", ".join(info["available"]) or "(none found)")
+    sys.exit(1 if missing else 0)
+
 def cmd_plot(a):
-    layouts = []
+    info = ctb_info(a.dwg)        # one quick read: layout names + their plot styles + what is installed
     if a.all:
-        out, _, _ = run_core(a.dwg, build_scr(['(hl-layouts)']), readonly=True, tag="lay")
-        layouts = [m.group(1).strip() for m in re.finditer(r"^LAYOUT\|(.+?)\s*$", out, re.M)]   # strip() matters: a stray CR in the name makes -PLOT wait forever
+        layouts = list(info["layouts"])
         if not layouts:
             sys.exit("no paper-space layouts found")
         print("layouts:", layouts)
@@ -200,6 +223,17 @@ def cmd_plot(a):
         if not a.layout:
             sys.exit("give --layout NAME or --all (see `info` for names)")
         layouts = [a.layout]
+    if a.ctb:
+        if not has_style(a.ctb, info["available"]):
+            sys.exit(f"plot style '{a.ctb}' is not in {info['dir']}. Available: {', '.join(info['available'])}")
+        print(f"plot style for this plot: {a.ctb} (drawing not changed)")
+    else:
+        miss = [(l, info["layouts"].get(l, "")) for l in layouts if not has_style(info["layouts"].get(l, ""), info["available"])]
+        for l, st in miss:
+            print(f"MISSING plot style: layout '{l}' uses '{st}', which is not in {info['dir']}")
+        if miss and not a.allow_missing_ctb:
+            sys.exit("Stopped: line weights / colors would be wrong. Copy the CTB into the Plot Styles folder, "
+                     "or pass --ctb <name> (available: " + ", ".join(info["available"]) + "), or --allow-missing-ctb.")
     base = os.path.splitext(os.path.basename(a.dwg))[0]
     outdir = a.outdir or os.path.dirname(os.path.abspath(a.dwg))
     os.makedirs(outdir, exist_ok=True)
@@ -210,6 +244,8 @@ def cmd_plot(a):
         pdfs.append(pdf)
         if os.path.exists(pdf):
             os.remove(pdf)
+        if a.ctb:
+            lines.append(f'(hl-set-ctb "{lay}" "{a.ctb}")')
         # page setup "" = the layout's own; device DWG To PDF.pc3; N = don't save page setup; Y = proceed
         lines.append(f'(command "-PLOT" "N" "{lay}" "" "{a.device}" "{win(pdf)}" "N" "Y")')
     out, dt, _ = run_core(a.dwg, build_scr(lines), readonly=True, timeout=1200, tag="plot")
@@ -253,7 +289,10 @@ def main():
     p.add_argument("--layout"); p.add_argument("--all", action="store_true"); p.add_argument("--out"); p.add_argument("--outdir")
     p.add_argument("--device", default="DWG To PDF.pc3")
     p.add_argument("--pre", action="append", help="LISP line(s) executed before -PLOT, e.g. (command \"_.-LAYER\" \"_F\" \"A-ANNO-REVS-*\" \"\"); repeatable; nothing is saved")
+    p.add_argument("--ctb", help="plot style table for this plot only (e.g. monochrome.ctb); the drawing is not changed")
+    p.add_argument("--allow-missing-ctb", action="store_true", help="plot even if the layout's plot style file is missing on this machine")
     p.set_defaults(fn=cmd_plot)
+    p = sub.add_parser("ctb"); common(p); p.set_defaults(fn=cmd_ctb)
     p = sub.add_parser("dxf"); common(p); p.add_argument("--out"); p.set_defaults(fn=cmd_dxf)
     a = ap.parse_args()
     global TIMEOUT_OVERRIDE

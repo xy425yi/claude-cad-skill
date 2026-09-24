@@ -145,7 +145,7 @@ Prefer to build it yourself? Delete it and run `dotnet build -c Release` in that
 - **AutoCAD location**: found automatically under `C:\Program Files\Autodesk\AutoCAD*` (full AutoCAD first, newest year first).
   Installed elsewhere? Run the installer with `-AutoCAD "D:\Apps\AutoCAD 2026"`; it saves the location in the skill's `cadcore.json`.
   Prefer LT when both are installed: `setx CADCORE_LT 1`.
-- **Plot styles**: plotting uses each layout's saved page setup; the CTB it names must be in your Plot Styles folder (`STYLESMANAGER` opens it).
+- **Plot styles**: before plotting, the agent asks which CTB to use (default: the one saved in each layout). The CTB file must be in your Plot Styles folder (`STYLESMANAGER` opens it); if it's missing, plotting stops and tells you.
 - **dynblock.dll** is built for AutoCAD 2027; for 2025/2026 rebuild it (see `dotnet/dynblock/README.md`).
 
 ## What's inside

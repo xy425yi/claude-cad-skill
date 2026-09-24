@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 — 2026-09-24
+
+- Plotting: the agent asks which plot style (CTB) to use before plotting. New `core.py ctb <dwg>` lists each layout's
+  CTB, whether it's installed, and all available CTBs; `plot --ctb <name>` overrides it for one plot without changing
+  the drawing; `plot` stops if the layout's CTB file is missing (`--allow-missing-ctb` to override).
+
 ## 1.0.0 — 2026-09-24
 
 First public release.

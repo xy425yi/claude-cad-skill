@@ -11,6 +11,38 @@ Built and battle-tested by a practicing architect on real US construction-docume
 interiors): keynotes, schedules, room/door tags, multileader notes, interior elevations, dimensions,
 revision clouds and deltas, title blocks, PDF sets.
 
+## What you can ask it
+
+**Look inside a drawing**
+- "What's in A-101?" — layouts, xrefs (and whether they resolve), layers, every note / tag / block with its handle
+- "Which sheets use keynote 14?", "list every room name and number in the set"
+
+**Edit text, tags and notes**
+- Keynotes: renumber bubbles, change legend text — bubble on the plan, bubble in the legend and legend line together
+- Title blocks, room / door / fixture tags, any block attribute (multi-line attributes included)
+- Add or move multileader notes following drafting rules: leaders never cross, arrowheads land exactly on the edge,
+  notes sorted by target height, text style copied from what the drawing already uses
+
+**Schedules**
+- Change cells, add / delete rows, adjust row heights and column widths; new rows go into the right category
+- Frames around the table stretch with it; what's below gets checked for overlaps
+
+**Revisions**
+- Compare against the last issued set, cloud what changed (tight calligraphy clouds, one arc size) and place deltas
+  outside the cloud without touching text
+
+**Drafting**
+- Interior elevations and enlarged plans to a documented standard: line weights, occlusion, datums, VIF dimensions,
+  accessibility mounting heights
+- Dynamic blocks: switch visibility states, set stretch / flip / angle parameters (full AutoCAD)
+- Wall poché from base plans, vector import from PDF details
+
+**Output and checking**
+- Plot one layout or a whole set to PDF, merge with a page-by-page check (switched-off layers can't sneak back in)
+- After every edit it re-plots the whole sheet and looks for knock-on problems — a taller row pushing into the notes,
+  a longer note hitting a datum
+- Every save makes a backup copy first; changes can be marked on a non-plotting review layer
+
 ## Install — the easy way
 
 1. Open **Claude Code** (the *Code* tab in the Claude desktop app) or **OpenAI Codex** on your Windows PC.
@@ -43,20 +75,43 @@ Claude Code users can use the plugin instead (don't do both):
 
 ## How it works
 
-Every AutoCAD install ships `accoreconsole.exe`, AutoCAD's engine without a user interface. The skill gives the
-agent a small Python driver and an AutoLISP library to run scripts through it: each job opens the DWG in a
-separate process, edits, saves and exits in a few seconds. Your AutoCAD window isn't touched.
+Every AutoCAD for Windows (full and LT 2024+) ships a second program next to `acad.exe`: **`accoreconsole.exe`**,
+AutoCAD's engine without the window. Autodesk made it for batch jobs and its cloud service. It opens a DWG, runs a
+script, saves, and exits — in a few seconds, invisibly, while your own AutoCAD keeps running.
 
-On top of the mechanics, the skill carries drafting rules learned from review rounds — leaders never cross,
-arrowheads land on edges, copy the drawing's own text styles, tight revision clouds, check what a change pushed
-out of place — so the output reads like the rest of your set.
+```
+  you: "renumber keynote 14 to 15 on A-101"
+   │
+   ▼
+  AI agent (Claude Code / Codex) reads SKILL.md: workflow + drafting rules
+   │  1. survey  – list what's in the drawing, find the exact objects (by handle)
+   │  2. write   – a short AutoLISP script with the change
+   │  3. run     – core.py → accoreconsole.exe → opens A-101.dwg, runs script, saves (after a backup)
+   │  4. check   – plot the sheet to PDF, look at it, fix anything that shifted
+   ▼
+  A-101.dwg changed + PDF to review
+```
 
-## How is this different from an AutoCAD MCP server?
+AutoLISP is AutoCAD's own scripting language, so every edit is a native AutoCAD operation on the real DWG —
+not a conversion, not a re-drawing. The skill's value is less in the mechanics than in the rules on top: the dozens
+of pitfalls of the console engine, and an architect's review comments turned into instructions the agent follows.
 
-MCP servers remote-control an AutoCAD window that has to be open and idle, and mostly expose drawing primitives
-("draw a line, add a layer"). This skill runs AutoCAD's console engine in the background — no window, your AutoCAD
-stays free — and is aimed at **production CD work on existing sheets**: keynotes, schedules, tags, notes and
-leaders, revision clouds, plotting and checking sets, with an architect's review rules built in.
+## Why not an MCP server?
+
+Most AutoCAD + AI projects are MCP servers that remote-control a running AutoCAD window (via COM). That works, but:
+
+| | MCP server (COM) | This skill (console engine) |
+|---|---|---|
+| AutoCAD window | must be open, and idle — if you're in the middle of a command, calls are rejected | not needed; your AutoCAD stays free for your own work |
+| AutoCAD LT | usually not supported (LT has no COM) | works (full AutoCAD unlocks more) |
+| Setup | a server process registered in the AI app's config | a folder of instructions + scripts; nothing running in the background |
+| Many sheets | one at a time through the open window | each job is its own clean process; batch a whole set |
+| What the AI gets | a list of tools ("draw line", "add layer") | the know-how: how to do CD work, what to check afterwards |
+| Readable by any AI | no — it's a program | yes — plain text; any agent can learn the approach from it |
+
+Where MCP is better: live interaction — "change *this*" on something you just selected, or iterating on a design
+while watching it appear. For production work on existing sheets — keynotes, schedules, tags, clouds, sets — the
+background engine is simpler and cleaner.
 
 ## Safety & transparency
 

@@ -1,0 +1,13 @@
+(defun ml-clone (src dx dy ax ay txt / e ed out inll done h)
+  (setvar "OSMODE" 0)
+  (command "_.COPY" (handent src) "" "0,0,0" (strcat (rtos dx 2 4) "," (rtos dy 2 4) ",0"))
+  (setq e (entlast) ed (entget e) out nil inll nil done nil)
+  (foreach x ed
+    (cond ((and (= (car x) 304) (= (cdr x) "LEADER_LINE{")) (setq inll T) (setq out (cons x out)))
+          ((and inll (not done) (= (car x) 10)) (setq out (cons (list 10 ax ay 0.0) out)) (setq done T))
+          (T (setq out (cons x out)))))
+  (entmod (reverse out))
+  (setq h (cdr (assoc 5 (entget e))))
+  (ml-set-text h txt)
+  (princ (strcat "\nMLCLONE|" h "|" (if done "ARROW-OK" "ARROW-FAIL")))
+  h)

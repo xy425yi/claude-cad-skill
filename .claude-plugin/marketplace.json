@@ -1,0 +1,17 @@
+{
+  "name": "claude-cad-skill",
+  "owner": { "name": "xy425yi" },
+  "metadata": {
+    "description": "AutoCAD skills for Claude Code, written by a practicing architect"
+  },
+  "plugins": [
+    {
+      "name": "cad-headless",
+      "source": "./plugins/cad-headless",
+      "description": "Read, edit and plot DWG files headlessly through AutoCAD's accoreconsole — keynotes, schedules, tags, notes, revision clouds, PDF sets",
+      "version": "1.0.0",
+      "category": "design",
+      "keywords": ["autocad", "dwg", "architecture", "cad", "construction-documents"]
+    }
+  ]
+}

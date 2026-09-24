@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Dynamic-block helper for FULL AutoCAD's accoreconsole (LT cannot NETLOAD).  Build: dotnet build -c Release -p:AcadDir="C:/Program Files/Autodesk/AutoCAD 2027" -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <OutputType>Library</OutputType>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>dynblock</AssemblyName>
+    <AcadDir Condition="'$(AcadDir)' == ''">C:/Program Files/Autodesk/AutoCAD 2027</AcadDir>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutDir>bin</OutDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="acdbmgd"><HintPath>$(AcadDir)/acdbmgd.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="accoremgd"><HintPath>$(AcadDir)/accoremgd.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

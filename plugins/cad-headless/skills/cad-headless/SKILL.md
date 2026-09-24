@@ -68,6 +68,14 @@ Add new helpers to lib.lsp using only entget / entmod / entmake / entdel / `(com
 | PDF driver | `DWG To PDF.pc3` | `--device "Name.pc3"` |
 | dynblock.dll | built for AutoCAD 2027 | rebuild for your release, see `dotnet/dynblock/README.md` |
 
+## First use (plugin installs)
+
+`install.ps1` normally does this; a Claude Code plugin install doesn't run it. Before the first job:
+1. `python <skill dir>/scripts/core.py exe` — prints the accoreconsole it will use. If it fails or picks AutoCAD LT
+   while the user has full AutoCAD elsewhere, ask where AutoCAD is installed and write
+   `<skill dir>/cadcore.json` as `{"accoreconsole": ["D:/Path/To/AutoCAD 2026/accoreconsole.exe"]}`.
+2. `python -m pip install --user pymupdf numpy ezdxf` (ask the user first).
+
 ## Workflow
 
 1. **Look**: `info` (units, layouts, xrefs resolved?), `survey` for handles and current values.

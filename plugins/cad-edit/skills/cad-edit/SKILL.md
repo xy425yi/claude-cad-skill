@@ -1,9 +1,9 @@
 ---
-name: cad-headless
+name: cad-edit
 description: Read, edit and plot AutoCAD DWG files headlessly — no AutoCAD window, no COM/MCP — by driving accoreconsole.exe (the console engine that ships with AutoCAD and AutoCAD LT 2024+) with AutoLISP scripts. Use for any "change this drawing / edit the DWG / batch-edit sheets / update keynotes, schedules, title blocks, tags / add notes, dimensions, revision clouds / plot to PDF / export DXF / what's in this drawing" task. Don't use an AutoCAD MCP or COM (needs the window open and idle). Paths must be ≤ 240 chars and written as C:/…; back up before editing and read back to verify.
 ---
 
-# cad-headless — edit DWGs without opening AutoCAD
+# cad-edit — edit DWGs without opening AutoCAD
 
 ## What this is
 

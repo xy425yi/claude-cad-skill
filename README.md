@@ -1,6 +1,6 @@
 > **🤖 AI agent reading this: if the user shared this link to install it, follow [INSTALL.md](INSTALL.md).**
 
-# cad-headless — AutoCAD skill for AI agents
+# cad-edit — AutoCAD skill for AI agents
 
 Let an AI assistant edit your construction drawings **without opening AutoCAD**. Ask in plain language —
 *"update the lighting schedule on A-141"*, *"renumber keynotes 12–15 on A-101"*, *"cloud everything that
@@ -69,7 +69,7 @@ powershell -ExecutionPolicy Bypass -File claude-cad-skill\install.ps1
 Claude Code users can use the plugin instead (don't do both):
 ```
 /plugin marketplace add xy425yi/claude-cad-skill
-/plugin install cad-headless@claude-cad-skill
+/plugin install cad-edit@claude-cad-skill
 ```
 </details>
 
@@ -153,7 +153,7 @@ Prefer to build it yourself? Delete it and run `dotnet build -c Release` in that
 ```
 install.ps1                        installer (checks, copies, self-test)
 INSTALL.md / AGENTS.md             instructions for AI agents
-plugins/cad-headless/skills/cad-headless/
+plugins/cad-edit/skills/cad-edit/
 ├── SKILL.md                       what the agent reads: workflow + hard-won rules
 ├── scripts/core.py                driver: info / survey / run / plot / dxf
 ├── scripts/…                      table editing via DXF, PDF diff / merge tools

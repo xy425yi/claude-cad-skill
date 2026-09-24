@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0 — 2026-09-24
+
+- Renamed the plugin and skill from `cad-headless` to **`cad-edit`**. Install with `/plugin install cad-edit@claude-cad-skill`;
+  `install.ps1` moves an install under the old name out of the skills folder so it doesn't load twice.
+
 ## 1.1.0 — 2026-09-24
 
 - Plotting: the agent asks which plot style (CTB) to use before plotting. New `core.py ctb <dwg>` lists each layout's

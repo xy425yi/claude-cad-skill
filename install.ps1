@@ -1,4 +1,4 @@
-# cad-headless installer for Windows (Claude Code, OpenAI Codex, other agents that read SKILL.md folders).
+# cad-edit installer for Windows (Claude Code, OpenAI Codex, other agents that read SKILL.md folders).
 #
 # Run it from a cloned or unzipped copy of the repo (read it first - it is short):
 #   powershell -ExecutionPolicy Bypass -File install.ps1
@@ -17,7 +17,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $Repo = "xy425yi/claude-cad-skill"
-$SkillRel = "plugins\cad-headless\skills\cad-headless"
+$SkillRel = "plugins\cad-edit\skills\cad-edit"
 $problems = @()
 
 function Say($msg) { Write-Host $msg }
@@ -26,7 +26,7 @@ function Warn($msg) { Write-Host "  [warn] $msg" -ForegroundColor Yellow }
 function Bad($msg) { Write-Host "  [FAIL] $msg" -ForegroundColor Red }
 
 Say ""
-Say "cad-headless installer"
+Say "cad-edit installer"
 Say "======================"
 
 # ---------- 1. get the skill files ----------
@@ -98,7 +98,19 @@ else {
 }
 $installed = $null
 foreach ($t in $targets) {
-    $dst = Join-Path $t "cad-headless"
+    $dst = Join-Path $t "cad-edit"
+    $old = Join-Path $t "cad-headless"          # name before 1.2.0
+    if (Test-Path (Join-Path $old ".git")) {
+        Warn "$old is a git checkout of this skill under its old name (someone develops it there) - not installing cad-edit next to it"
+        if (-not $installed) { $installed = $old }
+        continue
+    }
+    if (Test-Path $old) {
+        $bakRoot = Join-Path $env:LOCALAPPDATA "cad-edit-backups"
+        New-Item -ItemType Directory -Path $bakRoot -Force | Out-Null
+        Move-Item $old (Join-Path $bakRoot ("cad-headless-" + (Get-Date -Format "yyMMdd-HHmmss")))
+        Say  "         moved the old 'cad-headless' install to $bakRoot (renamed to cad-edit)"
+    }
     if (Test-Path (Join-Path $dst ".git")) {
         Warn "$dst is a git checkout (someone develops it there) - left untouched"
         if (-not $installed) { $installed = $dst }
@@ -106,7 +118,7 @@ foreach ($t in $targets) {
     }
     if (-not (Test-Path $t)) { New-Item -ItemType Directory -Path $t -Force | Out-Null }
     if (Test-Path $dst) {
-        $bakRoot = Join-Path $env:LOCALAPPDATA "cad-headless-backups"
+        $bakRoot = Join-Path $env:LOCALAPPDATA "cad-edit-backups"
         New-Item -ItemType Directory -Path $bakRoot -Force | Out-Null
         $bak = Join-Path $bakRoot ((Split-Path (Split-Path $t) -Leaf).TrimStart(".") + "-" + (Get-Date -Format "yyMMdd-HHmmss"))
         Move-Item $dst $bak
@@ -133,7 +145,7 @@ if ($SkipTest) {
     $work = Join-Path $env:LOCALAPPDATA "Temp\cadcore\selftest"
     New-Item -ItemType Directory -Path $work -Force | Out-Null
     $dxf = (Join-Path $work "selftest.dxf").Replace("\", "/")
-    & $py -c "import ezdxf; d = ezdxf.new('R2018'); m = d.modelspace(); m.add_line((0, 0), (10, 0)); m.add_text('cad-headless self-test').set_placement((0, 1)); d.saveas('$dxf')"
+    & $py -c "import ezdxf; d = ezdxf.new('R2018'); m = d.modelspace(); m.add_line((0, 0), (10, 0)); m.add_text('cad-edit self-test').set_placement((0, 1)); d.saveas('$dxf')"
     $out = & $py $core info $dxf 2>&1 | Out-String
     if ($LASTEXITCODE -eq 0 -and $out -match "LINE") {
         Ok "accoreconsole opened a test drawing and read it back"
@@ -148,7 +160,7 @@ if ($SkipTest) {
 # ---------- summary ----------
 Say ""
 if ($problems.Count -eq 0) {
-    Write-Host "DONE - cad-headless is installed." -ForegroundColor Green
+    Write-Host "DONE - cad-edit is installed." -ForegroundColor Green
     if ($engine) {
         $kind = if ($engine -match "AutoCAD LT") { "AutoCAD LT (plain edits + plotting; no dynamic blocks / table API)" } else { "full AutoCAD (all features)" }
         Say "Engine: $kind"

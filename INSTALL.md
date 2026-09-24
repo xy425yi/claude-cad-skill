@@ -41,7 +41,7 @@ plainly that it needs a Windows PC with AutoCAD 2024+ (a Windows virtual machine
 
 4. **Using a different agent** whose skills folder isn't `~/.claude/skills` or `~/.codex/skills`: run
    `install.ps1 -SkillsDir "<that folder>"`, or point your agent at
-   `plugins/cad-headless/skills/cad-headless/SKILL.md` as its instructions.
+   `plugins/cad-edit/skills/cad-edit/SKILL.md` as its instructions.
 
 5. **Tell the user** (in their language):
    - installed, and which AutoCAD it will use (the `Engine:` line: full AutoCAD = everything; LT = no dynamic blocks / table API);
@@ -54,6 +54,6 @@ plainly that it needs a Windows PC with AutoCAD 2024+ (a Windows virtual machine
 Claude Code users can instead type these two commands themselves (agents can't run slash commands):
 ```
 /plugin marketplace add xy425yi/claude-cad-skill
-/plugin install cad-headless@claude-cad-skill
+/plugin install cad-edit@claude-cad-skill
 ```
 Don't use both methods — pick one, or the skill loads twice. To update a script install, `git pull` and re-run `install.ps1`.

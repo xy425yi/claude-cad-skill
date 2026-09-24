@@ -85,16 +85,53 @@ def run_core(dwg, scr_text, readonly=False, timeout=600, tag="job"):
     if readonly:
         args.append("/readonly")
     env = dict(os.environ, MSYS_NO_PATHCONV="1")
+    cwd = os.path.dirname(os.path.abspath(dwg)) or WORK
+    plog = os.path.join(cwd, "plot.log")
+    plog0 = os.path.getsize(plog) if os.path.isfile(plog) else None
     t0 = time.time()
-    p = subprocess.Popen(args, cwd=os.path.dirname(os.path.abspath(dwg)) or WORK, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+    p = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
     try:
         so, se = p.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
         # kill only the console this call started (and its children), never other AutoCAD processes
         subprocess.run(["taskkill", "/F", "/T", "/PID", str(p.pid)], capture_output=True)
+        sweep_side_files(cwd, plog0)
         sys.exit(f"accoreconsole timed out after {timeout}s (killed). Check the script for a prompt that waits for input.")
+    sweep_side_files(cwd, plog0)
     out = (so + se).decode("utf-8", "replace").replace("\x00", "")
     return out, time.time() - t0, scr
+
+def sweep_side_files(cwd, plog0):
+    """accoreconsole drops ErrorReports/ (crash dumps) and appends to plot.log in the drawing's folder.
+    Keep project folders clean: move both into WORK (plot.log: only the lines this run appended)."""
+    if os.path.abspath(cwd) == os.path.abspath(WORK):
+        return
+    src = os.path.join(cwd, "ErrorReports")
+    if os.path.isdir(src):
+        dst = os.path.join(WORK, "ErrorReports")
+        os.makedirs(dst, exist_ok=True)
+        for n in os.listdir(src):
+            t = os.path.join(dst, n)
+            if os.path.exists(t):
+                t += "_%d" % int(time.time())
+            shutil.move(os.path.join(src, n), t)
+        try:
+            os.rmdir(src)
+        except OSError:
+            pass
+        print("moved ErrorReports ->", dst)
+    plog = os.path.join(cwd, "plot.log")
+    if os.path.isfile(plog) and os.path.getsize(plog) != (plog0 or 0):
+        with open(plog, "rb") as f:
+            f.seek(plog0 or 0)
+            new = f.read()
+        with open(os.path.join(WORK, "plot.log"), "ab") as f:
+            f.write(new)
+        if plog0:
+            with open(plog, "r+b") as f:
+                f.truncate(plog0)
+        else:
+            os.remove(plog)
 
 NOISE = re.compile(r"^(CoreHeartBeat|Loading AEC|Substituting \[|Regenerating|AutoCAD menu|Redirect stdout|AcCoreConsole:|AutoCAD Core Engine|Execution Path|Current Directory|Version Number|LogFilePath|\*\*\*\* System Variable|\d+ of the monitored|Command: *$|Command: Enter BACKSPACE|Enter new value for (SECURELOAD|FILEDIA|CMDECHO)|C:\\Program Files|Command: \(load |Command: SECURELOAD|Command: FILEDIA|Command: CMDECHO|Command: 0$)")
 

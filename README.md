@@ -51,6 +51,13 @@ On top of the mechanics, the skill carries drafting rules learned from review ro
 arrowheads land on edges, copy the drawing's own text styles, tight revision clouds, check what a change pushed
 out of place — so the output reads like the rest of your set.
 
+## How is this different from an AutoCAD MCP server?
+
+MCP servers remote-control an AutoCAD window that has to be open and idle, and mostly expose drawing primitives
+("draw a line, add a layer"). This skill runs AutoCAD's console engine in the background — no window, your AutoCAD
+stays free — and is aimed at **production CD work on existing sheets**: keynotes, schedules, tags, notes and
+leaders, revision clouds, plotting and checking sets, with an architect's review rules built in.
+
 ## Safety & transparency
 
 Everything here is plain, readable source code — Python, AutoLISP, C#, PowerShell — **except one file**,

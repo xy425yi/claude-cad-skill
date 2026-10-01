@@ -1,7 +1,7 @@
 {
   "name": "cad-edit",
   "displayName": "CAD Edit",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "Edit, check and plot AutoCAD drawings (DWG) in the background through AutoCAD's accoreconsole.exe — no AutoCAD window. Runs in Claude Code on Windows with AutoCAD or AutoCAD LT 2024+.",
   "author": {
     "name": "xy425yi",
@@ -9,6 +9,8 @@
   },
   "homepage": "https://github.com/xy425yi/claude-cad-skill#readme",
   "repository": "https://github.com/xy425yi/claude-cad-skill",
+  "supportUrl": "https://github.com/xy425yi/claude-cad-skill/issues",
+  "privacyPolicyUrl": "https://github.com/xy425yi/claude-cad-skill#safety--transparency",
   "license": "MIT",
   "keywords": [
     "autocad",

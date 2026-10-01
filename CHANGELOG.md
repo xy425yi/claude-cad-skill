@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.5 — 2026-10-01
+
+- Support (GitHub Issues) and privacy (README safety section) links for the directory listing.
+
 ## 1.3.4 — 2026-10-01
 
 - Display name "CAD Edit" and a homepage link for the directory listing.

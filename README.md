@@ -153,7 +153,7 @@ Prefer to build it yourself? Delete it and run `dotnet build -c Release` in that
 ```
 install.ps1                        installer (checks, copies, self-test)
 INSTALL.md / AGENTS.md             instructions for AI agents
-plugins/cad-edit/skills/cad-edit/
+skills/cad-edit/
 ├── SKILL.md                       what the agent reads: workflow + hard-won rules
 ├── scripts/core.py                driver: info / survey / run / plot / dxf
 ├── scripts/…                      table editing via DXF, PDF diff / merge tools

@@ -41,7 +41,7 @@ plainly that it needs a Windows PC with AutoCAD 2024+ (a Windows virtual machine
 
 4. **Using a different agent** whose skills folder isn't `~/.claude/skills` or `~/.codex/skills`: run
    `install.ps1 -SkillsDir "<that folder>"`, or point your agent at
-   `plugins/cad-edit/skills/cad-edit/SKILL.md` as its instructions.
+   `skills/cad-edit/SKILL.md` as its instructions.
 
 5. **Tell the user** (in their language):
    - installed, and which AutoCAD it will use (the `Engine:` line: full AutoCAD = everything; LT = no dynamic blocks / table API);

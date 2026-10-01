@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0 — 2026-10-01
+
+- The repository root is now the plugin (`.claude-plugin/plugin.json` + `skills/cad-edit/`), so it can be submitted and
+  installed without a sub-path. The marketplace (`/plugin marketplace add xy425yi/claude-cad-skill`) is unchanged.
+
 ## 1.2.0 — 2026-09-24
 
 - Renamed the plugin and skill from `cad-headless` to **`cad-edit`**. Install with `/plugin install cad-edit@claude-cad-skill`;

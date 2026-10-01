@@ -17,7 +17,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $Repo = "xy425yi/claude-cad-skill"
-$SkillRel = "plugins\cad-edit\skills\cad-edit"
+$SkillRel = "skills\cad-edit"
 $problems = @()
 
 function Say($msg) { Write-Host $msg }

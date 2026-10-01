@@ -2,11 +2,9 @@ __pycache__/
 *.pyc
 *.bak.dwg
 *.pdf
-*.png
 *.dxf
 *.dwg
 *.dwl
 *.dwl2
 ErrorReports/
 cadcore.json
-!.claude-plugin/icon.png

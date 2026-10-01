@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1 — 2026-10-01
+
+- Plugin icon (`.claude-plugin/icon.png`).
+
 ## 1.3.0 — 2026-10-01
 
 - The repository root is now the plugin (`.claude-plugin/plugin.json` + `skills/cad-edit/`), so it can be submitted and

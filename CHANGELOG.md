@@ -2,7 +2,7 @@
 
 ## 1.3.1 — 2026-10-01
 
-- Plugin icon (`.claude-plugin/icon.png`).
+- Added a plugin icon for the directory listing.
 
 ## 1.3.0 — 2026-10-01
 

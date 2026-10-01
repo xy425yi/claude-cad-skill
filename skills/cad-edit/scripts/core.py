@@ -85,12 +85,11 @@ def run_core(dwg, scr_text, readonly=False, timeout=600, tag="job"):
     args = [exe, "/i", win(dwg), "/s", win(scr), "/l", "en-US"]
     if readonly:
         args.append("/readonly")
-    env = dict(os.environ, MSYS_NO_PATHCONV="1")
     cwd = os.path.dirname(os.path.abspath(dwg)) or WORK
     plog = os.path.join(cwd, "plot.log")
     plog0 = os.path.getsize(plog) if os.path.isfile(plog) else None
     t0 = time.time()
-    p = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+    p = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
         so, se = p.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:

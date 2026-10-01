@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2 — 2026-10-01
+
+- `core.py` no longer copies the whole environment when starting accoreconsole (the child process simply inherits it);
+  the installer's help message no longer contains a URL. Nothing in the plugin reads credentials or sends data anywhere.
+
 ## 1.3.1 — 2026-10-01
 
 - Added a plugin icon for the directory listing.

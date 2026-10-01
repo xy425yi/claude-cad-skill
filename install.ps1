@@ -16,7 +16,6 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$Repo = "xy425yi/claude-cad-skill"
 $SkillRel = "skills\cad-edit"
 $problems = @()
 
@@ -33,7 +32,7 @@ Say "======================"
 Say "1. Skill files"
 if (-not $PSScriptRoot -or -not (Test-Path (Join-Path $PSScriptRoot "$SkillRel\SKILL.md"))) {
     Bad "run this file from inside the downloaded repo:  powershell -ExecutionPolicy Bypass -File install.ps1"
-    Say  "         get the repo with:  git clone https://github.com/$Repo   (or Code > Download ZIP on that page, then unzip)"
+    Say  "         download this repository (git clone, or Code > Download ZIP on its GitHub page), unzip it, and run install.ps1 from inside it"
     exit 1
 }
 $src = Join-Path $PSScriptRoot $SkillRel

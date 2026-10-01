@@ -96,7 +96,7 @@ has it open — their next save would overwrite yours), and keep temp PDFs/PNGs 
 **Engine & scripts**
 - Paths ≤ 240 chars, written `C:/…` with forward slashes. Longer or `/c/…` → `Improper drawing name, ErrorStatus=360`.
   core.py works in `%LOCALAPPDATA%\Temp\cadcore` for this reason.
-- `.scr` must be CRLF; under Git Bash set `MSYS_NO_PATHCONV=1` (core.py does both). `SECURELOAD 0` before any `load`.
+- `.scr` must be CRLF (core.py writes it that way). If you call accoreconsole by hand from Git Bash, set `MSYS_NO_PATHCONV=1` so `/i` and `/s` aren't rewritten as paths. `SECURELOAD 0` before any `load`.
 - Script lines longer than ~2000 chars get truncated (you see `((((_>` prompts): put long code in a `.lsp` and `(load …)` it.
 - A script that hangs is almost always a command waiting for an answer you didn't give. core.py kills it at the timeout; rerun with `-v` to see the prompt.
 - `(setvar "OSMODE" 0)` first — running object snaps pull scripted points onto nearby lines.

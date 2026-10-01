@@ -15,40 +15,39 @@ dynblock.dll for dynamic blocks and tables); AutoCAD LT 2024+ also ships accorec
 Every subcommand builds a .scr (CRLF), loads lisp/lib.lsp, runs accoreconsole from a SHORT temp dir,
 and prints the filtered console. Exit code 1 if AutoCAD reported an error.
 """
-import argparse, os, re, shutil, subprocess, sys, time, glob
+import argparse, glob, json, os, re, shutil, subprocess, sys, tempfile, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(os.path.dirname(HERE), "lisp", "lib.lsp")
-WORK = os.path.join(os.environ.get("LOCALAPPDATA", r"C:\Temp"), "Temp", "cadcore")   # short path on purpose (AutoCAD chokes past ~260 chars)
+WORK = os.path.join(tempfile.gettempdir(), "cadcore")   # short path on purpose (AutoCAD chokes past ~260 chars)
 MAXPATH = 240
 TIMEOUT_OVERRIDE = None
 
 PREFER_LT = False
 DYNBLOCK_DLL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dotnet", "dynblock", "bin", "dynblock.dll")
 
-CONFIG = os.path.join(os.path.dirname(HERE), "cadcore.json")   # written by install.ps1: {"accoreconsole": [paths]}
+CONFIG = os.path.join(os.path.dirname(HERE), "cadcore.json")   # written by install.ps1: {"accoreconsole": [paths], "prefer_lt": bool}
+
+def load_config():
+    if not os.path.exists(CONFIG):
+        return {}
+    try:
+        return json.load(open(CONFIG, encoding="utf-8-sig"))
+    except Exception as e:
+        print(f"WARN: could not read {CONFIG}: {e}")
+        return {}
 
 def find_exe():
-    env = os.environ.get("ACCORECONSOLE")
-    if env and os.path.exists(env):
-        return env
-    cands = []
-    if os.path.exists(CONFIG):
-        try:
-            import json
-            cands += [p for p in json.load(open(CONFIG, encoding="utf-8-sig")).get("accoreconsole", []) if os.path.exists(p)]
-        except Exception as e:
-            print(f"WARN: could not read {CONFIG}: {e}")
-    roots = [r"C:\Program Files\Autodesk", r"C:\Program Files (x86)\Autodesk"]
-    roots += [r for r in os.environ.get("CADCORE_SEARCH", "").split(";") if r]   # extra folders, ;-separated
-    for root in roots:   # a root may be an Autodesk folder or an AutoCAD install folder itself (same rule as install.ps1)
-        cands += glob.glob(os.path.join(root, "accoreconsole.exe")) + glob.glob(os.path.join(root, "*", "accoreconsole.exe"))
+    cfg = load_config()
+    cands = [p for p in cfg.get("accoreconsole", []) if os.path.exists(p)]
+    for root in (r"C:\Program Files\Autodesk", r"C:\Program Files (x86)\Autodesk"):
+        cands += glob.glob(os.path.join(root, "*", "accoreconsole.exe"))
     cands = list({os.path.normcase(os.path.abspath(c)): os.path.abspath(c) for c in cands}.values())
     if not cands:
-        sys.exit("accoreconsole.exe not found. Re-run install.ps1 with -AutoCAD \"<AutoCAD folder>\", or set ACCORECONSOLE=<path>. Needs AutoCAD / AutoCAD LT 2024+.")
+        sys.exit("accoreconsole.exe not found. Re-run install.ps1 (with -AutoCAD \"<AutoCAD folder>\" if AutoCAD is outside Program Files). Needs AutoCAD / AutoCAD LT 2024+.")
     # prefer full AutoCAD (its console can NETLOAD .NET plugins such as dynblock.dll), newest year first;
-    # --lt or env CADCORE_LT=1 flips that (e.g. to keep a full-version trial license untouched)
-    lt = PREFER_LT or os.environ.get("CADCORE_LT") == "1"
+    # --lt, or install.ps1 -PreferLT ("prefer_lt" in cadcore.json), flips that (e.g. to keep a full-version trial license untouched)
+    lt = PREFER_LT or bool(cfg.get("prefer_lt"))
     def key(p):
         year = int((re.findall(r"(\d{4})", p) or ["0"])[-1])
         is_lt = "LT" in p.upper()

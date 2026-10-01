@@ -10,6 +10,7 @@
 
 param(
     [string]$AutoCAD = "",            # AutoCAD folder(s) outside C:\Program Files, ;-separated (install folder or its parent)
+    [switch]$PreferLT,                # use AutoCAD LT even when full AutoCAD is installed
     [string]$SkillsDir = "",          # install only into this folder (testing / other agents)
     [switch]$SkipPip,                 # don't pip install
     [switch]$SkipTest                 # don't run the self-test
@@ -42,9 +43,7 @@ Ok "using $src"
 Say "2. AutoCAD"
 $roots = @("C:\Program Files\Autodesk", "C:\Program Files (x86)\Autodesk")
 if ($AutoCAD) { $roots += $AutoCAD.Split(";") }
-if ($env:CADCORE_SEARCH) { $roots += $env:CADCORE_SEARCH.Split(";") }
 $exes = @()
-if ($env:ACCORECONSOLE -and (Test-Path $env:ACCORECONSOLE)) { $exes += Get-Item $env:ACCORECONSOLE }
 foreach ($r in $roots) {
     if (-not $r) { continue }
     $r = $r.Trim().Trim('"')
@@ -55,6 +54,14 @@ foreach ($r in $roots) {
     $exes += Get-ChildItem -Path (Join-Path $r "*\accoreconsole.exe") -ErrorAction SilentlyContinue
 }
 $exes = @($exes | Sort-Object FullName -Unique)
+# only accept AutoCAD's own console: the file must carry a valid Autodesk code signature
+$signed = @()
+foreach ($e in $exes) {
+    $sig = Get-AuthenticodeSignature $e.FullName
+    if ($sig.Status -eq "Valid" -and $sig.SignerCertificate.Subject -match "Autodesk") { $signed += $e }
+    else { Warn "ignored (no valid Autodesk signature): $($e.FullName)" }
+}
+$exes = $signed
 $full = @($exes | Where-Object { $_.FullName -notmatch "AutoCAD LT" })
 $lt = @($exes | Where-Object { $_.FullName -match "AutoCAD LT" })
 foreach ($e in $exes) { Ok $e.FullName }
@@ -105,7 +112,7 @@ foreach ($t in $targets) {
         continue
     }
     if (Test-Path $old) {
-        $bakRoot = Join-Path $env:LOCALAPPDATA "cad-edit-backups"
+        $bakRoot = Join-Path ([Environment]::GetFolderPath("LocalApplicationData")) "cad-edit-backups"
         New-Item -ItemType Directory -Path $bakRoot -Force | Out-Null
         Move-Item $old (Join-Path $bakRoot ("cad-headless-" + (Get-Date -Format "yyMMdd-HHmmss")))
         Say  "         moved the old 'cad-headless' install to $bakRoot (renamed to cad-edit)"
@@ -117,7 +124,7 @@ foreach ($t in $targets) {
     }
     if (-not (Test-Path $t)) { New-Item -ItemType Directory -Path $t -Force | Out-Null }
     if (Test-Path $dst) {
-        $bakRoot = Join-Path $env:LOCALAPPDATA "cad-edit-backups"
+        $bakRoot = Join-Path ([Environment]::GetFolderPath("LocalApplicationData")) "cad-edit-backups"
         New-Item -ItemType Directory -Path $bakRoot -Force | Out-Null
         $bak = Join-Path $bakRoot ((Split-Path (Split-Path $t) -Leaf).TrimStart(".") + "-" + (Get-Date -Format "yyMMdd-HHmmss"))
         Move-Item $dst $bak
@@ -125,8 +132,8 @@ foreach ($t in $targets) {
     }
     Copy-Item $src $dst -Recurse
     Get-ChildItem $dst -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
-    # remember where AutoCAD is, so no environment variable (and no app restart) is needed
-    $cfg = @{ accoreconsole = @($exes | ForEach-Object { $_.FullName }) } | ConvertTo-Json
+    # remember where AutoCAD is (and whether to prefer LT) for core.py
+    $cfg = @{ accoreconsole = @($exes | ForEach-Object { $_.FullName }); prefer_lt = [bool]$PreferLT } | ConvertTo-Json
     [IO.File]::WriteAllText((Join-Path $dst "cadcore.json"), $cfg)
     Ok $dst
     if (-not $installed) { $installed = $dst }
@@ -141,7 +148,7 @@ if ($SkipTest) {
     Warn "skipped (fix the problems above first)"
 } else {
     $core = Join-Path $installed "scripts\core.py"
-    $work = Join-Path $env:LOCALAPPDATA "Temp\cadcore\selftest"
+    $work = Join-Path ([IO.Path]::GetTempPath()) "cadcore\selftest"
     New-Item -ItemType Directory -Path $work -Force | Out-Null
     $dxf = (Join-Path $work "selftest.dxf").Replace("\", "/")
     & $py -c "import ezdxf; d = ezdxf.new('R2018'); m = d.modelspace(); m.add_line((0, 0), (10, 0)); m.add_text('cad-edit self-test').set_placement((0, 1)); d.saveas('$dxf')"

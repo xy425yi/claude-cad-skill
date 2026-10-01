@@ -64,7 +64,7 @@ Add new helpers to lib.lsp using only entget / entmod / entmake / entdel / `(com
 
 | Item | Default | If different |
 |---|---|---|
-| accoreconsole.exe | `cadcore.json` in the skill folder (written by install.ps1) + `C:/Program Files/Autodesk/AutoCAD*`; full AutoCAD first, newest year first | re-run `install.ps1 -AutoCAD "<folder>"`, or `ACCORECONSOLE=<exe>`; `CADCORE_LT=1` / `--lt` to prefer LT |
+| accoreconsole.exe | `cadcore.json` in the skill folder (written by install.ps1) + `C:/Program Files/Autodesk/AutoCAD*`; full AutoCAD first, newest year first | re-run `install.ps1 -AutoCAD "<folder>"` (only Autodesk-signed executables are accepted); `install.ps1 -PreferLT` or `--lt` to prefer LT. No environment variables are used |
 | Plot style (.ctb/.stb) | each layout's saved page setup; ask the user before plotting (see Plotting) | `core.py ctb` shows what's used / installed; `plot --ctb <name>` overrides; missing files go in the Plot Styles folder (`STYLESMANAGER` opens it) |
 | PDF driver | `DWG To PDF.pc3` | `--device "Name.pc3"` |
 | dynblock.dll | built for AutoCAD 2027 | rebuild for your release, see `dotnet/dynblock/README.md` |

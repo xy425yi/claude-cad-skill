@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.3 — 2026-10-01
+
+- No environment variables anywhere: `core.py` takes the AutoCAD location and LT preference only from `cadcore.json`
+  (written by the installer), and the temp folder from the standard library. `ACCORECONSOLE`, `CADCORE_SEARCH` and
+  `CADCORE_LT` are gone; use `install.ps1 -AutoCAD <folder>` and `-PreferLT` instead.
+- The installer only accepts `accoreconsole.exe` files with a valid Autodesk code signature.
+
 ## 1.3.2 — 2026-10-01
 
 - `core.py` no longer copies the whole environment when starting accoreconsole (the child process simply inherits it);

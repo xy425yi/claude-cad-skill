@@ -9,3 +9,4 @@ __pycache__/
 *.dwl2
 ErrorReports/
 cadcore.json
+!.claude-plugin/icon.png

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.6 — 2026-10-01
+
+- Removed the support/privacy link fields added in 1.3.5; the directory validator does not recognise them.
+
 ## 1.3.5 — 2026-10-01
 
 - Support (GitHub Issues) and privacy (README safety section) links for the directory listing.

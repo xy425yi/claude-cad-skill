@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.4 — 2026-10-01
+
+- Display name "CAD Edit" and a homepage link for the directory listing.
+
 ## 1.3.3 — 2026-10-01
 
 - No environment variables anywhere: `core.py` takes the AutoCAD location and LT preference only from `cadcore.json`

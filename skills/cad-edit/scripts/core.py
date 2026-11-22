@@ -15,7 +15,7 @@ dynblock.dll for dynamic blocks and tables); AutoCAD LT 2024+ also ships accorec
 Every subcommand builds a .scr (CRLF), loads lisp/lib.lsp, runs accoreconsole from a SHORT temp dir,
 and prints the filtered console. Exit code 1 if AutoCAD reported an error.
 """
-import argparse, glob, json, os, re, shutil, subprocess, sys, tempfile, time
+import argparse, glob, json, locale, os, re, shutil, subprocess, sys, tempfile, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(os.path.dirname(HERE), "lisp", "lib.lsp")
@@ -40,6 +40,11 @@ def load_config():
 def find_exe():
     cfg = load_config()
     cands = [p for p in cfg.get("accoreconsole", []) if os.path.exists(p)]
+    # An explicit cadcore.json entry wins outright. Otherwise the sort below ranks by year, and
+    # "DWG TrueView 2024" beats "AutoCAD 2022" on a machine that has both — but TrueView's console
+    # is a viewer: it rejects SECURELOAD and cannot save a DWG, so every edit silently fails.
+    if cands:
+        return os.path.abspath(cands[0])
     for root in (r"C:\Program Files\Autodesk", r"C:\Program Files (x86)\Autodesk"):
         cands += glob.glob(os.path.join(root, "*", "accoreconsole.exe"))
     cands = list({os.path.normcase(os.path.abspath(c)): os.path.abspath(c) for c in cands}.values())
@@ -97,8 +102,30 @@ def run_core(dwg, scr_text, readonly=False, timeout=600, tag="job"):
         sweep_side_files(cwd, plog0)
         sys.exit(f"accoreconsole timed out after {timeout}s (killed). Check the script for a prompt that waits for input.")
     sweep_side_files(cwd, plog0)
-    out = (so + se).decode("utf-8", "replace").replace("\x00", "")
+    out = decode_console(so + se)
     return out, time.time() - t0, scr
+
+def decode_console(b):
+    """accoreconsole writes UTF-16LE on a CJK Windows. Decoding as UTF-8 and stripping NULs keeps
+    ASCII readable but turns every non-ASCII layer, layout and block name into mojibake, so `info`
+    and `survey` become unusable on such drawings. Detect UTF-16LE (BOM, or mostly-zero odd bytes)
+    and decode it properly; otherwise keep the previous behaviour."""
+    if not b:
+        return ""
+    if b[:2] == b"\xff\xfe" or (len(b) > 40 and b[1::2].count(0) > len(b[1::2]) // 2):
+        return b.decode("utf-16-le", "replace").replace("\ufeff", "")
+    return b.decode("utf-8", "replace").replace("\x00", "")
+
+def read_lisp_file(path):
+    """Files written by AutoLISP (the survey output) use the Windows ANSI codepage, not UTF-8.
+    Reading them as UTF-8 mangles every non-ASCII name."""
+    b = open(path, "rb").read()
+    for enc in ("utf-8", locale.getpreferredencoding(False), "latin-1"):
+        try:
+            return b.decode(enc)
+        except (UnicodeDecodeError, LookupError):
+            continue
+    return b.decode("utf-8", "replace")
 
 def sweep_side_files(cwd, plog0):
     """accoreconsole drops ErrorReports/ (crash dumps) and appends to plot.log in the drawing's folder.
@@ -163,10 +190,10 @@ def cmd_survey(a):
     out, dt, _ = run_core(a.dwg, build_scr(lines), readonly=True, tag="survey")
     bad = show(out, a.verbose)
     if os.path.exists(outp):
-        n = sum(1 for _ in open(outp, encoding="utf-8", errors="replace"))
+        n = sum(1 for _ in read_lisp_file(outp).splitlines())
         print(f"-> {outp} ({n} rows)  columns: handle|type|layer|space|xmin,ymin,xmax,ymax|name|attrs|text")
         if a.print:
-            print(open(outp, encoding="utf-8", errors="replace").read())
+            print(read_lisp_file(outp))
     print(f"[{dt:.1f}s]"); sys.exit(1 if bad else 0)
 
 def cmd_run(a):
